@@ -1,0 +1,275 @@
+<!--
+    Cinemoji player view — embedded as a fragment into the launcher's player shell.
+    The shell injects this HTML into #game-view and then loads client.js.
+-->
+<style>
+.cinemoji-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, #2a1f4a 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, #1f2a3a 0%, transparent 50%);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+}
+
+.cinemoji-root h1.logo {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,230,109,0.4), 4px 4px 0 var(--accent);
+    text-align: center;
+    margin-bottom: 8px;
+}
+.cinemoji-root .tagline {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.cinemoji-root .screen {
+    display: none;
+    width: 100%;
+    max-width: 600px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: cineFadeIn 0.35s ease;
+}
+.cinemoji-root .screen.active { display: flex; }
+@keyframes cineFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.cinemoji-root .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.cinemoji-root .timer {
+    font-family: 'Boogaloo', cursive;
+    font-size: 3rem;
+    color: var(--yellow);
+    line-height: 1;
+    min-width: 56px;
+    text-align: center;
+    transition: color 0.3s;
+}
+.cinemoji-root .timer.urgent { color: var(--red); animation: cinePulse 0.5s infinite alternate; }
+@keyframes cinePulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.1); }
+}
+
+.cinemoji-root .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+.cinemoji-root .stats-bar span b { color: var(--yellow); }
+
+.cinemoji-root .emoji-stage {
+    width: 100%;
+    min-height: 220px;
+    border-radius: 16px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.cinemoji-root .emoji-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,107,53,0.12), transparent 60%);
+    pointer-events: none;
+}
+.cinemoji-root .emoji-display {
+    font-size: clamp(3.5rem, 14vw, 7rem);
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    word-spacing: 0.15em;
+    user-select: none;
+    position: relative;
+    animation: cinePop 0.5s ease;
+}
+@keyframes cinePop {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.cinemoji-root .guess-feed {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 120px;
+    overflow: hidden;
+}
+.cinemoji-root .guess-item {
+    background: var(--surface);
+    border-left: 3px solid var(--green);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    animation: cineSlideIn 0.25s ease;
+}
+@keyframes cineSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.cinemoji-root .round-answer {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.8rem;
+    color: var(--yellow);
+    text-align: center;
+    letter-spacing: 2px;
+    min-height: 40px;
+}
+
+.cinemoji-root .lb-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.2rem;
+    color: var(--yellow);
+    text-align: center;
+    letter-spacing: 2px;
+}
+.cinemoji-root .lb-progress {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    color: var(--accent);
+    text-align: center;
+}
+.cinemoji-root .lb-list {
+    list-style: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.cinemoji-root .lb-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.cinemoji-root .lb-list li.winner { border-color: var(--yellow); background: rgba(255,230,109,0.07); }
+.cinemoji-root .lb-rank  { font-size: 1.4rem; width: 32px; text-align: center; }
+.cinemoji-root .lb-name  { flex: 1; font-weight: 700; }
+.cinemoji-root .lb-score { font-family: 'Boogaloo', cursive; font-size: 1.4rem; color: var(--yellow); }
+
+.cinemoji-root .muted { color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+.cinemoji-root .waiting-card {
+    text-align: center;
+    padding: 40px 28px;
+}
+.cinemoji-root .waiting-card p {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.cinemoji-root .waiting-card small {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.cinemoji-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #2a1f4a;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    border-radius: 50px;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+}
+.cinemoji-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+</style>
+
+<div class="cinemoji-root">
+
+    <h1 class="logo">Cinemoji</h1>
+    <p class="tagline">Guess the movie from the emojis</p>
+
+    <!-- Waiting for host to start -->
+    <div id="cine-screen-waiting" class="screen active">
+        <div class="card waiting-card">
+            <p>⏳ Waiting for host…</p>
+            <small>Game will begin when the host starts it</small>
+        </div>
+    </div>
+
+    <!-- Active round -->
+    <div id="cine-screen-game" class="screen">
+        <div class="stats-bar">
+            <span>Round <b id="cine-round-num">1</b> / <b id="cine-round-total">10</b></span>
+            <span id="cine-correct-count">0 / 10 correct</span>
+        </div>
+        <div class="emoji-stage">
+            <div id="cine-emoji-display" class="emoji-display">🎬</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;width:100%;">
+            <div id="cine-timer" class="timer">–</div>
+            <div id="cine-guess-feed" class="guess-feed"></div>
+        </div>
+        <div id="cine-round-answer" class="round-answer"></div>
+    </div>
+
+    <!-- Leaderboard between rounds -->
+    <div id="cine-screen-leaderboard" class="screen">
+        <p class="lb-title">🏆 Leaderboard</p>
+        <p id="cine-lb-progress" class="lb-progress"></p>
+        <ul id="cine-lb-list" class="lb-list"></ul>
+        <p class="muted">Next round in <b id="cine-lb-countdown" style="color:var(--accent);">6</b>s…</p>
+    </div>
+
+    <!-- Final results -->
+    <div id="cine-screen-gameover" class="screen">
+        <p class="lb-title">🏆 Final Results</p>
+        <ul id="cine-gameover-list" class="lb-list"></ul>
+        <p class="muted">Thanks for playing!</p>
+    </div>
+
+</div>

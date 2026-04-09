@@ -1,0 +1,303 @@
+<!--
+    SWYS player view — embedded as a fragment into the launcher's player shell.
+    The shell injects this HTML into #game-view and then loads client.js.
+-->
+<style>
+.swys-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, #2a1f4a 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, #1f2a3a 0%, transparent 50%);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+}
+
+.swys-root h1.logo {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,230,109,0.4), 4px 4px 0 var(--accent);
+    text-align: center;
+    margin-bottom: 8px;
+}
+.swys-root .tagline {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.swys-root .screen {
+    display: none;
+    width: 100%;
+    max-width: 600px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: swysFadeIn 0.35s ease;
+}
+.swys-root .screen.active { display: flex; }
+@keyframes swysFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.swys-root .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.swys-root .timer {
+    font-family: 'Boogaloo', cursive;
+    font-size: 3rem;
+    color: var(--yellow);
+    line-height: 1;
+    min-width: 56px;
+    text-align: center;
+    transition: color 0.3s;
+}
+.swys-root .timer.urgent { color: var(--red); animation: swysPulse 0.5s infinite alternate; }
+@keyframes swysPulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.1); }
+}
+
+.swys-root .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+.swys-root .stats-bar span b { color: var(--yellow); }
+
+.swys-root .puzzle-wrap {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    position: relative;
+}
+.swys-root .puzzle-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.swys-root .tile-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 4px;
+    padding: 4px;
+}
+.swys-root .tile {
+    background: var(--card);
+    border-radius: 6px;
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.swys-root .tile.removed { opacity: 0; transform: scale(0.8); pointer-events: none; }
+
+.swys-root .guess-feed {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 120px;
+    overflow: hidden;
+}
+.swys-root .guess-item {
+    background: var(--surface);
+    border-left: 3px solid var(--green);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    animation: swysSlideIn 0.25s ease;
+}
+@keyframes swysSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.swys-root .round-answer {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.8rem;
+    color: var(--yellow);
+    text-align: center;
+    letter-spacing: 2px;
+    min-height: 40px;
+}
+
+.swys-root .bonus-info {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.2rem;
+    color: var(--accent);
+    text-align: center;
+}
+.swys-root .bonus-pts {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    color: var(--green);
+    text-align: center;
+}
+
+.swys-root .lb-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.2rem;
+    color: var(--yellow);
+    text-align: center;
+    letter-spacing: 2px;
+}
+.swys-root .lb-progress {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    color: var(--accent);
+    text-align: center;
+}
+.swys-root .lb-list {
+    list-style: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.swys-root .lb-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.swys-root .lb-list li.winner { border-color: var(--yellow); background: rgba(255,230,109,0.07); }
+.swys-root .lb-rank  { font-size: 1.4rem; width: 32px; text-align: center; }
+.swys-root .lb-name  { flex: 1; font-weight: 700; }
+.swys-root .lb-score { font-family: 'Boogaloo', cursive; font-size: 1.4rem; color: var(--yellow); }
+
+.swys-root .muted { color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+.swys-root .waiting-card {
+    text-align: center;
+    padding: 40px 28px;
+}
+.swys-root .waiting-card p {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.swys-root .waiting-card small {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.swys-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #2a1f4a;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    border-radius: 50px;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+}
+.swys-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+</style>
+
+<div class="swys-root">
+
+    <h1 class="logo">Say What You See</h1>
+    <p class="tagline">The TikTok Live guessing game</p>
+
+    <!-- Waiting for host to start -->
+    <div id="screen-waiting" class="screen active">
+        <div class="card waiting-card">
+            <p>⏳ Waiting for host…</p>
+            <small>Game will begin when the host starts it</small>
+        </div>
+    </div>
+
+    <!-- Active round -->
+    <div id="screen-game" class="screen">
+        <div class="stats-bar">
+            <span>Round <b id="round-num">1</b></span>
+            <span id="correct-count">0 / 10 correct</span>
+        </div>
+        <div class="puzzle-wrap">
+            <img id="puzzle-img" src="" alt="Puzzle">
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;width:100%;">
+            <div id="game-timer" class="timer">–</div>
+            <div id="guess-feed" class="guess-feed"></div>
+        </div>
+        <div id="round-answer" class="round-answer"></div>
+    </div>
+
+    <!-- Bonus turn -->
+    <div id="screen-bonus" class="screen">
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;">
+            <p style="font-family:'Boogaloo',cursive;font-size:1.8rem;color:var(--yellow);">⭐ Catchphrase!</p>
+            <p class="bonus-info"><span id="bonus-player"></span> is guessing!</p>
+            <div id="bonus-timer" class="timer">–</div>
+        </div>
+        <div class="puzzle-wrap">
+            <img id="bonus-img" src="" alt="Bonus puzzle">
+            <div class="tile-grid">
+                <div class="tile" id="tile-0"></div><div class="tile" id="tile-1"></div><div class="tile" id="tile-2"></div>
+                <div class="tile" id="tile-3"></div><div class="tile" id="tile-4"></div><div class="tile" id="tile-5"></div>
+                <div class="tile" id="tile-6"></div><div class="tile" id="tile-7"></div><div class="tile" id="tile-8"></div>
+            </div>
+        </div>
+        <p id="bonus-pts" class="bonus-pts"></p>
+        <p id="bonus-feedback" class="muted"></p>
+    </div>
+
+    <!-- Leaderboard between rounds -->
+    <div id="screen-leaderboard" class="screen">
+        <p class="lb-title">🏆 Leaderboard</p>
+        <p id="lb-progress" class="lb-progress"></p>
+        <ul id="lb-list" class="lb-list"></ul>
+        <p class="muted">Next round in <b id="lb-countdown" style="color:var(--accent);">8</b>s…</p>
+    </div>
+
+    <!-- Final results -->
+    <div id="screen-gameover" class="screen">
+        <p class="lb-title">🏆 Final Results</p>
+        <ul id="gameover-list" class="lb-list"></ul>
+        <p class="muted">Thanks for playing!</p>
+    </div>
+
+</div>

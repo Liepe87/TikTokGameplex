@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Game Hub — Host Lobby</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:      #0f0e17;
+    --card:    #221f35;
+    --surface: #1a1829;
+    --accent:  #ff6b35;
+    --yellow:  #ffe66d;
+    --green:   #06d6a0;
+    --red:     #ef233c;
+    --text:    #fffffe;
+    --muted:   #a7a9be;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, #2a1f4a 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, #1f2a3a 0%, transparent 50%);
+}
+
+h1 {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.8rem;
+    color: var(--yellow);
+    text-shadow: 0 0 30px rgba(255,230,109,0.35), 4px 4px 0 var(--accent);
+    text-align: center;
+}
+
+.tagline {
+    color: var(--muted);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.status-bar {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px 20px;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.status-bar .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.status-bar .value { font-family: 'Boogaloo', cursive; font-size: 1.4rem; color: var(--yellow); }
+.status-bar button {
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: 'Boogaloo', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.status-bar button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+h2.section-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--yellow);
+    width: 100%;
+    max-width: 900px;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.game-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+.game-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px rgba(255,107,53,0.2);
+}
+.game-card.active {
+    border-color: var(--green);
+    box-shadow: 0 10px 30px rgba(6,214,160,0.3);
+}
+
+.game-thumb {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: var(--surface);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+}
+.game-thumb .active-pill {
+    background: var(--green);
+    color: #111;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    display: none;
+}
+.game-card.active .game-thumb .active-pill { display: inline-block; }
+
+.game-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.game-name {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.5rem;
+    color: var(--yellow);
+}
+.game-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
+
+.empty-state {
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+    font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<h1>Game Hub</h1>
+<p class="tagline">Host Lobby</p>
+
+<div class="status-bar">
+    <div>
+        <div class="label">Currently Active</div>
+        <div class="value" id="active-name">— none —</div>
+    </div>
+    <button id="btn-deselect" disabled>↺ Return to Lobby</button>
+</div>
+
+<h2 class="section-title">Choose a Game</h2>
+
+<div class="game-grid" id="game-grid">
+    <div class="empty-state">Loading…</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/host-lobby.js"></script>
+</body>
+</html>

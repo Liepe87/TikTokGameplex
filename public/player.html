@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:      #0f0e17;
+    --surface: #1a1829;
+    --card:    #221f35;
+    --accent:  #ff6b35;
+    --yellow:  #ffe66d;
+    --green:   #06d6a0;
+    --red:     #ef233c;
+    --text:    #fffffe;
+    --muted:   #a7a9be;
+    --radius:  16px;
+}
+
+html, body { height: 100%; }
+body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, #2a1f4a 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, #1f2a3a 0%, transparent 50%);
+}
+
+/* ── Idle lineup view ──────────────────────────────────────────────────────── */
+#idle-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 32px;
+}
+
+.hub-logo {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(3rem, 10vw, 6rem);
+    color: var(--yellow);
+    text-align: center;
+    text-shadow: 0 0 40px rgba(255,230,109,0.4), 5px 5px 0 var(--accent);
+}
+.hub-tagline {
+    color: var(--muted);
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.coming-up {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.lineup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+}
+.lineup-card {
+    background: var(--card);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: floatIn 0.5s ease;
+}
+@keyframes floatIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.lineup-thumb {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: var(--surface);
+    background-size: cover;
+    background-position: center;
+}
+.lineup-body { padding: 16px 18px; }
+.lineup-name {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--yellow);
+    margin-bottom: 4px;
+}
+.lineup-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
+
+.waiting-hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* ── Game view container ──────────────────────────────────────────────────── */
+#game-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+#game-view.hidden, #idle-view.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div id="idle-view">
+    <div>
+        <h1 class="hub-logo">Game Hub</h1>
+        <p class="hub-tagline">TikTok Live Games</p>
+    </div>
+    <div class="coming-up">✨ Coming Up ✨</div>
+    <div class="lineup-grid" id="lineup-grid"></div>
+    <p class="waiting-hint">Waiting for the host to pick a game…</p>
+</div>
+
+<div id="game-view" class="hidden"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/player-shell.js"></script>
+</body>
+</html>

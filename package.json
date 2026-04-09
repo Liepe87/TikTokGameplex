@@ -1,0 +1,15 @@
+{
+  "name": "tiktok-game-hub",
+  "version": "1.0.0",
+  "description": "Multi-game host system for TikTok Live",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "fast-levenshtein": "^3.0.0",
+    "socket.io": "^4.8.3",
+    "tiktok-live-connector": "^2.1.1-beta1"
+  }
+}
