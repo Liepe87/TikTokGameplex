@@ -47,6 +47,7 @@ class SwysGame extends GameModule {
         // Timers
         this.roundTimer      = null;
         this.bonusGuessTimer = null;
+        this.pendingTransition = null; // { fn, timer, endsAt, remaining }
 
         // Pause tracking
         this.roundEndsAt = null;
@@ -84,9 +85,27 @@ class SwysGame extends GameModule {
         this.handleChatGuess(username, message);
     }
 
+    _scheduleTransition(fn, delay) {
+        if (this.pendingTransition) clearTimeout(this.pendingTransition.timer);
+        const t = {
+            fn,
+            endsAt: Date.now() + delay,
+        };
+        t.timer = setTimeout(() => { this.pendingTransition = null; fn(); }, delay);
+        this.pendingTransition = t;
+    }
+
+    _clearTransition() {
+        if (this.pendingTransition) {
+            clearTimeout(this.pendingTransition.timer);
+            this.pendingTransition = null;
+        }
+    }
+
     teardown() {
         clearTimeout(this.roundTimer);
         clearTimeout(this.bonusGuessTimer);
+        this._clearTransition();
         this.roundTimer = null;
         this.bonusGuessTimer = null;
         this.nsp.off("connection", this._onConnect);
@@ -113,12 +132,13 @@ class SwysGame extends GameModule {
         this.usedPuzzleIndices = [];
         this.started           = true;
         this.emitHostState();
-        setTimeout(() => this.startRound(), 500);
+        this._scheduleTransition(() => this.startRound(), 500);
     }
 
     hostReset() {
         clearTimeout(this.roundTimer);
         clearTimeout(this.bonusGuessTimer);
+        this._clearTransition();
         this.started           = false;
         this.paused            = false;
         this.currentRound      = null;
@@ -144,6 +164,11 @@ class SwysGame extends GameModule {
             clearTimeout(this.bonusGuessTimer);
             this.bonusGuessTimer = null;
         }
+        if (this.pendingTransition) {
+            this.pendingTransition.remaining = Math.max(0, this.pendingTransition.endsAt - Date.now());
+            clearTimeout(this.pendingTransition.timer);
+            this.pendingTransition.timer = null;
+        }
 
         this.nsp.emit("gamePaused");
         this.emitHostState();
@@ -153,18 +178,32 @@ class SwysGame extends GameModule {
         if (!this.started || !this.paused) return;
         this.paused = false;
 
+        let resumeRoundMs = null;
+        let resumeBonusMs = null;
+
         if (this.currentRound?.active && this.roundRemaining != null) {
+            resumeRoundMs = this.roundRemaining;
             this.roundEndsAt = Date.now() + this.roundRemaining;
             this.roundTimer  = setTimeout(() => this.endRound(), this.roundRemaining);
             this.roundRemaining = null;
         }
         if (this.bonus?.guessOpen && this.bonusRemaining != null) {
+            resumeBonusMs = this.bonusRemaining;
             this.bonusEndsAt     = Date.now() + this.bonusRemaining;
             this.bonusGuessTimer = setTimeout(() => this._bonusExpire(), this.bonusRemaining);
             this.bonusRemaining  = null;
         }
+        if (this.pendingTransition && this.pendingTransition.remaining != null) {
+            const t = this.pendingTransition;
+            t.endsAt = Date.now() + t.remaining;
+            t.timer = setTimeout(() => { this.pendingTransition = null; t.fn(); }, t.remaining);
+            t.remaining = null;
+        }
 
-        this.nsp.emit("gameResumed");
+        this.nsp.emit("gameResumed", {
+            roundTimeRemaining: resumeRoundMs,
+            bonusTimeRemaining: resumeBonusMs,
+        });
         this.emitHostState();
     }
 
@@ -274,9 +313,9 @@ class SwysGame extends GameModule {
         this.emitHostState();
 
         if (this.currentRound.winners.length > 0) {
-            setTimeout(() => this.startBonusTurn(this.currentRound.winners[0]), 4000);
+            this._scheduleTransition(() => this.startBonusTurn(this.currentRound.winners[0]), 4000);
         } else {
-            setTimeout(() => this.showLeaderboard(), 4000);
+            this._scheduleTransition(() => this.showLeaderboard(), 4000);
         }
     }
 
@@ -332,7 +371,7 @@ class SwysGame extends GameModule {
         if (this.bonus.revealed.length >= 9) {
             this.retireBonus(null, 0, this.bonus.puzzle.answer);
         } else {
-            setTimeout(() => this.showLeaderboard(), 2000);
+            this._scheduleTransition(() => this.showLeaderboard(), 2000);
         }
     }
 
@@ -375,9 +414,9 @@ class SwysGame extends GameModule {
 
         const delay = winner ? 3000 : 2000;
         if (this.bonusRoundsPlayed >= this.maxBonusRounds) {
-            setTimeout(() => this.gameOver(), delay);
+            this._scheduleTransition(() => this.gameOver(), delay);
         } else {
-            setTimeout(() => this.showLeaderboard(), delay);
+            this._scheduleTransition(() => this.showLeaderboard(), delay);
         }
     }
 
@@ -389,7 +428,7 @@ class SwysGame extends GameModule {
             bonusRoundsPlayed: this.bonusRoundsPlayed,
             maxBonusRounds:    this.maxBonusRounds,
         });
-        setTimeout(() => this.startRound(), 8000);
+        this._scheduleTransition(() => this.startRound(), 8000);
     }
 
     gameOver() {
@@ -397,7 +436,7 @@ class SwysGame extends GameModule {
         this.nsp.emit("gameOver", this.getBoard());
 
         if (this.autoplay) {
-            setTimeout(() => {
+            this._scheduleTransition(() => {
                 this.hostStart({
                     maxBonusRounds: this.maxBonusRounds,
                     roundTime:      this.roundTime,

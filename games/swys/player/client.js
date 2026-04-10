@@ -29,7 +29,11 @@
     });
 
     socket.on("gamePaused",  () => { stopTimer(); showToast("⏸ Game paused"); });
-    socket.on("gameResumed", () => { showToast("▶ Game resumed"); });
+    socket.on("gameResumed", ({ roundTimeRemaining, bonusTimeRemaining }) => {
+        if (roundTimeRemaining != null) startTimer("game-timer", roundTimeRemaining);
+        if (bonusTimeRemaining != null) startTimer("bonus-timer", bonusTimeRemaining);
+        showToast("▶ Game resumed");
+    });
 
     socket.on("giftReceived", ({ username, maxBonusRounds, bonusRoundsPlayed }) => {
         const remaining = maxBonusRounds - bonusRoundsPlayed;
