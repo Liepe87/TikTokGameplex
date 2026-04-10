@@ -173,7 +173,7 @@ app.post("/gift", localOnly, (req, res) => {
 
 const PORT = 3000;
 server.listen(PORT, () => {
-    console.log(`Game hub running — open http://localhost:${PORT}`);
+    console.log(`Gameplex running — open http://localhost:${PORT}`);
     console.log(`Host panel:        http://localhost:${PORT}/host`);
     console.log(`Games loaded:      ${registry.list().map(g => g.id).join(", ") || "(none)"}`);
 });
