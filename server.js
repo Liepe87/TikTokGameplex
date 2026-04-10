@@ -173,6 +173,16 @@ app.post("/chat", localOnly, (req, res) => {
     res.json({ ok: true });
 });
 
+app.post("/chat/bulk", localOnly, (req, res) => {
+    const { messages } = req.body || {};
+    if (Array.isArray(messages)) {
+        for (const { username, message } of messages) {
+            if (username && message) launcher.handleChat(username, message);
+        }
+    }
+    res.json({ ok: true });
+});
+
 app.post("/gift", localOnly, (req, res) => {
     const { username } = req.body || {};
     if (username) launcher.handleGift(username);
