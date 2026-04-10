@@ -277,6 +277,17 @@ input[type="number"]:focus { border-color: var(--accent); }
                 <span class="toggle-slider"></span>
             </label>
         </div>
+        <div class="toggle-row">
+            <span>Gift = +1 bonus round</span>
+            <label class="toggle">
+                <input type="checkbox" id="cfg-gift-bonus" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div>
+            <label>Min Gift Value (coins)</label>
+            <input type="number" id="cfg-min-gift" value="0" min="0" max="50000">
+        </div>
         <button class="btn btn-apply" id="btn-apply">Apply</button>
     </div>
 
@@ -326,9 +337,11 @@ socket.on("hostState", state => {
     document.getElementById("info-autoplay").innerText =
         state.autoplay ? "On" : "Off";
 
-    document.getElementById("cfg-bonus-rounds").value = state.maxBonusRounds;
-    document.getElementById("cfg-round-time").value   = state.roundTime / 1000;
-    document.getElementById("cfg-autoplay").checked   = state.autoplay;
+    document.getElementById("cfg-bonus-rounds").value  = state.maxBonusRounds;
+    document.getElementById("cfg-round-time").value    = state.roundTime / 1000;
+    document.getElementById("cfg-autoplay").checked    = state.autoplay;
+    document.getElementById("cfg-gift-bonus").checked  = state.giftBonus;
+    document.getElementById("cfg-min-gift").value      = state.minGiftValue;
 
     document.getElementById("btn-start").disabled  = state.started;
     document.getElementById("btn-pause").disabled  = !state.started || state.paused;
@@ -360,7 +373,9 @@ document.getElementById("btn-start").addEventListener("click", () => {
     const maxBonusRounds = parseInt(document.getElementById("cfg-bonus-rounds").value) || 5;
     const roundTime      = (parseInt(document.getElementById("cfg-round-time").value) || 20) * 1000;
     const autoplay       = document.getElementById("cfg-autoplay").checked;
-    post("/host/swys/start", { maxBonusRounds, roundTime, autoplay });
+    const giftBonus      = document.getElementById("cfg-gift-bonus").checked;
+    const minGiftValue   = parseInt(document.getElementById("cfg-min-gift").value) || 0;
+    post("/host/swys/start", { maxBonusRounds, roundTime, autoplay, giftBonus, minGiftValue });
 });
 
 document.getElementById("btn-reset").addEventListener("click", () => {
@@ -374,7 +389,9 @@ document.getElementById("btn-apply").addEventListener("click", () => {
     const maxBonusRounds = parseInt(document.getElementById("cfg-bonus-rounds").value) || 5;
     const roundTime      = (parseInt(document.getElementById("cfg-round-time").value) || 20) * 1000;
     const autoplay       = document.getElementById("cfg-autoplay").checked;
-    post("/host/swys/config", { maxBonusRounds, roundTime, autoplay });
+    const giftBonus      = document.getElementById("cfg-gift-bonus").checked;
+    const minGiftValue   = parseInt(document.getElementById("cfg-min-gift").value) || 0;
+    post("/host/swys/config", { maxBonusRounds, roundTime, autoplay, giftBonus, minGiftValue });
 });
 
 async function post(url, body = {}) {

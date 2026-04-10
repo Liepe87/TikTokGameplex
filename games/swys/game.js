@@ -41,6 +41,8 @@ class SwysGame extends GameModule {
         this.bonusTime      = DEFAULT_BONUS_TIME;
         this.maxBonusRounds = DEFAULT_BONUS_ROUNDS;
         this.bonusRoundsPlayed = 0;
+        this.giftBonus      = true;
+        this.minGiftValue   = 0;
 
         // Timers
         this.roundTimer      = null;
@@ -98,11 +100,13 @@ class SwysGame extends GameModule {
 
     // ── Host controls ─────────────────────────────────────────────────────────
 
-    hostStart({ maxBonusRounds, roundTime, autoplay } = {}) {
+    hostStart({ maxBonusRounds, roundTime, autoplay, giftBonus, minGiftValue } = {}) {
         if (this.started) return;
         this.maxBonusRounds    = Math.max(1, parseInt(maxBonusRounds) || DEFAULT_BONUS_ROUNDS);
         this.roundTime         = Math.max(5000, parseInt(roundTime) || DEFAULT_ROUND_TIME);
         this.autoplay          = !!autoplay;
+        if (giftBonus     != null) this.giftBonus    = !!giftBonus;
+        if (minGiftValue  != null) this.minGiftValue = Math.max(0, parseInt(minGiftValue) || 0);
         this.bonusRoundsPlayed = 0;
         this.paused            = false;
         this.players           = {};
@@ -164,10 +168,12 @@ class SwysGame extends GameModule {
         this.emitHostState();
     }
 
-    hostConfig({ roundTime, maxBonusRounds, autoplay } = {}) {
+    hostConfig({ roundTime, maxBonusRounds, autoplay, giftBonus, minGiftValue } = {}) {
         if (roundTime      != null) this.roundTime      = Math.max(5000, parseInt(roundTime) || DEFAULT_ROUND_TIME);
         if (maxBonusRounds != null) this.maxBonusRounds = Math.max(1, parseInt(maxBonusRounds) || DEFAULT_BONUS_ROUNDS);
         if (autoplay       != null) this.autoplay       = !!autoplay;
+        if (giftBonus      != null) this.giftBonus      = !!giftBonus;
+        if (minGiftValue   != null) this.minGiftValue   = Math.max(0, parseInt(minGiftValue) || 0);
         this.emitHostState();
     }
 
@@ -178,6 +184,8 @@ class SwysGame extends GameModule {
             started:           this.started,
             paused:            this.paused,
             autoplay:          this.autoplay,
+            giftBonus:         this.giftBonus,
+            minGiftValue:      this.minGiftValue,
             roundTime:         this.roundTime,
             maxBonusRounds:    this.maxBonusRounds,
             bonusRoundsPlayed: this.bonusRoundsPlayed,
@@ -191,12 +199,15 @@ class SwysGame extends GameModule {
 
     // ── Gifts ─────────────────────────────────────────────────────────────────
 
-    handleGift(username) {
+    handleGift(username, coins) {
         if (!this.started) return;
         if (!this.players[username]) this.players[username] = { score: 0 };
-        this.maxBonusRounds++;
+        if (this.giftBonus && (coins || 0) >= this.minGiftValue) {
+            this.maxBonusRounds++;
+        }
         this.nsp.emit("giftReceived", {
             username,
+            coins:             coins || 0,
             maxBonusRounds:    this.maxBonusRounds,
             bonusRoundsPlayed: this.bonusRoundsPlayed,
         });

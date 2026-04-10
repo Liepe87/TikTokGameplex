@@ -46,7 +46,7 @@ class GameModule {
 
     handleChat(username, message) {}
 
-    handleGift(username) {}
+    handleGift(username, coins) {}
 
     // ── State snapshots ───────────────────────────────────────────────────────
 

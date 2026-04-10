@@ -76,8 +76,8 @@ class LauncherState {
         if (this.activeGame) this.activeGame.handleChat(username, message);
     }
 
-    handleGift(username) {
-        if (this.activeGame) this.activeGame.handleGift(username);
+    handleGift(username, coins) {
+        if (this.activeGame) this.activeGame.handleGift(username, coins);
     }
 }
 

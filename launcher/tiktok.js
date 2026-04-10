@@ -25,7 +25,8 @@ function connectTikTok(username, launcher) {
     tiktok.on("gift", data => {
         // Filter streak gifts so we only count them once at the end.
         if (data.giftType === 1 && !data.repeatEnd) return;
-        launcher.handleGift(data.nickname);
+        const coins = (data.diamondCount || 0) * (data.repeatCount || 1);
+        launcher.handleGift(data.nickname, coins);
     });
 
     tiktok.on("disconnected", () => {

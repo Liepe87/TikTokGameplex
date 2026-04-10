@@ -184,8 +184,8 @@ app.post("/chat/bulk", localOnly, (req, res) => {
 });
 
 app.post("/gift", localOnly, (req, res) => {
-    const { username } = req.body || {};
-    if (username) launcher.handleGift(username);
+    const { username, coins } = req.body || {};
+    if (username) launcher.handleGift(username, parseInt(coins) || 0);
     res.json({ ok: true });
 });
 
