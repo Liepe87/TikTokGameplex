@@ -197,6 +197,8 @@ class CinemojiGame extends GameModule {
             roundsPlayed: this.roundsPlayed,
             puzzleCount:  this.puzzles.length,
             scores:       this.getBoard(),
+            currentAnswer: this.currentRound?.puzzle?.answer || null,
+            currentEmojis: this.currentRound?.puzzle?.emojis || null,
         };
     }
 

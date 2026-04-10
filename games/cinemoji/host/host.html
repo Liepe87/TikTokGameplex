@@ -251,6 +251,15 @@ input[type="number"]:focus { border-color: var(--accent); }
         </div>
     </div>
 
+    <div class="card full" id="answer-card" style="display:none;">
+        <h2>Current Round</h2>
+        <div style="text-align:center;">
+            <div id="answer-emojis" style="font-size:2.5rem;margin-bottom:8px;"></div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Answer</div>
+            <div id="answer-text" style="font-family:'Boogaloo',cursive;font-size:1.6rem;color:var(--green);"></div>
+        </div>
+    </div>
+
     <div class="card">
         <h2>Game Controls</h2>
         <div class="btn-row">
@@ -333,6 +342,15 @@ socket.on("hostState", state => {
     document.getElementById("cfg-rounds").value     = state.maxRounds;
     document.getElementById("cfg-round-time").value = state.roundTime / 1000;
     document.getElementById("cfg-autoplay").checked = state.autoplay;
+
+    const answerCard = document.getElementById("answer-card");
+    if (state.currentAnswer) {
+        document.getElementById("answer-emojis").innerText = state.currentEmojis || "";
+        document.getElementById("answer-text").innerText = state.currentAnswer;
+        answerCard.style.display = "";
+    } else {
+        answerCard.style.display = "none";
+    }
 
     document.getElementById("btn-start").disabled  = state.started;
     document.getElementById("btn-pause").disabled  = !state.started || state.paused;
