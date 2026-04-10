@@ -7,7 +7,7 @@ const IMAGE_DIR        = path.join(__dirname, "images");
 const IMAGE_URL_PREFIX = "/games/swys/images";
 
 const DEFAULT_ROUND_TIME   = 20000;
-const DEFAULT_BONUS_TIME   = 10000;
+const DEFAULT_BONUS_TIME   = 20000;
 const DEFAULT_BONUS_ROUNDS = 5;
 
 function normalize(text) {
