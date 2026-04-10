@@ -9,7 +9,7 @@ const { connectTikTok } = require("./launcher/tiktok");
 
 // ── TikTok username ───────────────────────────────────────────────────────────
 // Put your TikTok username here (without the @)
-const TIKTOK_USERNAME = "your_tiktok_username";
+const TIKTOK_USERNAME = "luverlycuppatea";
 
 // ── App + Socket.IO ───────────────────────────────────────────────────────────
 
