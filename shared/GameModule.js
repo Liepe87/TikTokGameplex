@@ -35,6 +35,9 @@ class GameModule {
     /** Handle a game-specific host action (e.g. skip, select player). */
     hostAction(params = {}) {}
 
+    /** End the current game (e.g. finish a story, end a round). */
+    hostEnd() {}
+
     /**
      * Clean up anything that would leak across game switches:
      * timers, intervals, socket listeners on the namespace, etc.

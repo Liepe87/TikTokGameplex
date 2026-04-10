@@ -58,6 +58,24 @@
         showToast("\uD83C\uDF81 " + data.username + " sent a gift! They\u2019re next up!");
     });
 
+    socket.on("storyEnded", function(data) {
+        stopTimer();
+        showScreen("sc-screen-ended");
+        var finalEl = document.getElementById("sc-final-story");
+        var statusEl = document.getElementById("sc-tts-status");
+        finalEl.innerText = data.storyText || "";
+        if (data.storyText && window.speechSynthesis) {
+            statusEl.style.display = "";
+            var utt = new SpeechSynthesisUtterance(data.storyText);
+            utt.rate = 0.95;
+            utt.pitch = 1.05;
+            utt.onend = function() { statusEl.innerText = "\u2705 Story complete!"; };
+            speechSynthesis.speak(utt);
+        } else {
+            statusEl.style.display = "none";
+        }
+    });
+
     // ── Turn events ──────────────────────────────────────────────────────────
 
     socket.on("turnStart", function(data) {
@@ -180,6 +198,7 @@
 
     window.__storychainCleanup = function() {
         stopTimer();
+        if (window.speechSynthesis) speechSynthesis.cancel();
         try { socket.disconnect(); } catch (e) {}
     };
 })();

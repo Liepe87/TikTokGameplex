@@ -148,6 +148,10 @@ input:focus { border-color: var(--accent); }
 .btn-resume { background: var(--accent); color: #fff; }
 .btn-apply  { background: var(--accent); color: #fff; }
 .btn-skip   { background: var(--red);    color: #fff; padding: 8px 16px; width: auto; font-size: 1rem; }
+.btn-end    { background: linear-gradient(135deg, #7b2ff7, #c471ed); color: #fff; }
+.btn-tts    { background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid rgba(255,255,255,0.12); }
+.btn-tts:hover { color: var(--accent); border-color: var(--accent); }
+.btn-tts.speaking { color: var(--green); border-color: var(--green); }
 
 .btn-row { display: flex; gap: 10px; }
 .btn-row .btn { flex: 1; }
@@ -270,7 +274,9 @@ input:focus { border-color: var(--accent); }
     </div>
 
     <div class="card full">
-        <h2>Story <span class="badge" id="word-count">0 words</span></h2>
+        <h2>Story <span class="badge" id="word-count">0 words</span>
+            <button class="btn btn-tts" id="btn-tts" style="margin-left:auto;padding:6px 14px;font-size:0.9rem;" disabled>&#128264; Play</button>
+        </h2>
         <div class="story-display" id="story-text"><span class="empty">The story will appear here&hellip;</span></div>
     </div>
 
@@ -284,6 +290,7 @@ input:focus { border-color: var(--accent); }
             <button class="btn btn-pause"  id="btn-pause"  disabled>&#9208; Pause</button>
             <button class="btn btn-resume" id="btn-resume" disabled>&#9654; Resume</button>
         </div>
+        <button class="btn btn-end" id="btn-end" disabled>&#128218; End Story</button>
     </div>
 
     <div class="card">
@@ -368,6 +375,8 @@ socket.on("hostState", function(state) {
     document.getElementById("btn-start").disabled  = state.started;
     document.getElementById("btn-pause").disabled  = !state.started || state.paused;
     document.getElementById("btn-resume").disabled = !state.started || !state.paused;
+    document.getElementById("btn-end").disabled    = !state.started || state.wordCount === 0;
+    document.getElementById("btn-tts").disabled    = state.wordCount === 0;
 
     // Pool
     updatePool(state.pool || [], state.currentPlayer);
@@ -438,6 +447,42 @@ document.getElementById("btn-apply").addEventListener("click", function() {
     var turnTime = (parseInt(document.getElementById("cfg-turn-time").value) || 15) * 1000;
     post("/host/storychain/config", { turnTime: turnTime });
 });
+
+document.getElementById("btn-end").addEventListener("click", function() {
+    if (confirm("End the story and play it back?")) post("/host/storychain/end");
+});
+
+// ── Text-to-Speech ──────────────────────────────────────────────────────────
+
+var ttsUtterance = null;
+
+socket.on("storyEnded", function(data) {
+    if (data.storyText) speakStory(data.storyText);
+});
+
+document.getElementById("btn-tts").addEventListener("click", function() {
+    if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+        return;
+    }
+    var text = document.getElementById("story-text").innerText;
+    if (text) speakStory(text);
+});
+
+function speakStory(text) {
+    speechSynthesis.cancel();
+    ttsUtterance = new SpeechSynthesisUtterance(text);
+    ttsUtterance.rate = 0.95;
+    ttsUtterance.pitch = 1.05;
+    var btn = document.getElementById("btn-tts");
+    btn.classList.add("speaking");
+    btn.innerHTML = "&#128266; Stop";
+    ttsUtterance.onend = function() {
+        btn.classList.remove("speaking");
+        btn.innerHTML = "&#128264; Play";
+    };
+    speechSynthesis.speak(ttsUtterance);
+}
 
 function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function(c) {

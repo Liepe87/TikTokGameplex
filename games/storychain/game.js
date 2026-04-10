@@ -143,6 +143,20 @@ class StoryChainGame extends GameModule {
         this.emitHostState();
     }
 
+    hostEnd() {
+        if (!this.started) return;
+        clearTimeout(this.turnTimer);
+        clearTimeout(this.nextTurnTimer);
+        this.turnTimer      = null;
+        this.nextTurnTimer  = null;
+        this.started        = false;
+        this.paused         = false;
+        this.currentPlayer  = null;
+
+        this.nsp.emit("storyEnded", { storyText: this.getStoryText(), wordCount: this.story.length });
+        this.emitHostState();
+    }
+
     hostConfig({ turnTime } = {}) {
         if (turnTime != null) this.turnTime = Math.max(5000, parseInt(turnTime) || DEFAULT_TURN_TIME);
         this.emitHostState();

@@ -155,6 +155,16 @@ app.post("/host/:gameId/config", localOnly, (req, res) => {
     }
 });
 
+app.post("/host/:gameId/end", localOnly, (req, res) => {
+    try {
+        ensureActive(req.params.gameId);
+        launcher.forwardHostCall(req.params.gameId, "hostEnd");
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(400).json({ ok: false, error: err.message });
+    }
+});
+
 app.post("/host/:gameId/action", localOnly, (req, res) => {
     try {
         ensureActive(req.params.gameId);
