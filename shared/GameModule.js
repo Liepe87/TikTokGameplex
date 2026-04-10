@@ -32,6 +32,9 @@ class GameModule {
     /** Apply a runtime configuration change without restarting. */
     hostConfig(config = {}) {}
 
+    /** Handle a game-specific host action (e.g. skip, select player). */
+    hostAction(params = {}) {}
+
     /**
      * Clean up anything that would leak across game switches:
      * timers, intervals, socket listeners on the namespace, etc.

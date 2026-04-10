@@ -1,0 +1,245 @@
+<!--
+    StoryChain player view — embedded as a fragment into the launcher's player shell.
+    The shell injects this HTML into #game-view and then loads client.js.
+-->
+<style>
+.sc-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, #2a1f4a 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, #1f2a3a 0%, transparent 50%);
+    font-family: 'Nunito', sans-serif;
+    color: var(--text);
+}
+
+.sc-root h1.logo {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    color: var(--yellow);
+    text-shadow: 0 0 40px rgba(255,230,109,0.4), 4px 4px 0 var(--accent);
+    text-align: center;
+    margin-bottom: 8px;
+}
+.sc-root .tagline {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.sc-root .screen {
+    display: none;
+    width: 100%;
+    max-width: 700px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: scFadeIn 0.35s ease;
+}
+.sc-root .screen.active { display: flex; }
+@keyframes scFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.sc-root .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.sc-root .timer {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.6rem;
+    color: var(--yellow);
+    line-height: 1;
+    min-width: 50px;
+    text-align: center;
+    transition: color 0.3s;
+}
+.sc-root .timer.urgent { color: var(--red); animation: scPulse 0.5s infinite alternate; }
+@keyframes scPulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.1); }
+}
+
+.sc-root .story-stage {
+    width: 100%;
+    min-height: 180px;
+    max-height: 340px;
+    overflow-y: auto;
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 24px 20px;
+    font-size: 1.25rem;
+    line-height: 1.8;
+    word-wrap: break-word;
+    position: relative;
+}
+.sc-root .story-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,107,53,0.06), transparent 60%);
+    pointer-events: none;
+    border-radius: 16px;
+}
+.sc-root .story-stage .placeholder {
+    color: var(--muted);
+    font-style: italic;
+}
+.sc-root .story-stage .latest-word {
+    color: var(--green);
+    font-weight: 900;
+    animation: scWordPop 0.5s ease;
+}
+@keyframes scWordPop {
+    0%   { background: rgba(6,214,160,0.35); border-radius: 4px; }
+    100% { background: transparent; }
+}
+
+.sc-root .word-count {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: right;
+    width: 100%;
+    padding-right: 4px;
+}
+
+.sc-root .turn-card {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.sc-root .turn-info {
+    flex: 1;
+}
+.sc-root .turn-player {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.4rem;
+    color: var(--accent);
+}
+.sc-root .turn-player b {
+    color: var(--green);
+}
+.sc-root .turn-hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.sc-root .feed {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 110px;
+    overflow: hidden;
+}
+.sc-root .feed-item {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    animation: scSlideIn 0.25s ease;
+}
+.sc-root .feed-item.skipped { border-left-color: var(--red); color: var(--muted); }
+.sc-root .feed-item.joined  { border-left-color: var(--yellow); color: var(--muted); }
+.sc-root .feed-item.word    { border-left-color: var(--green); }
+@keyframes scSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.sc-root .muted { color: var(--muted); font-size: 0.85rem; text-align: center; }
+
+.sc-root .waiting-card {
+    text-align: center;
+    padding: 40px 28px;
+}
+.sc-root .waiting-card p {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.6rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+.sc-root .waiting-card small {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.sc-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #2a1f4a;
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    border-radius: 50px;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+}
+.sc-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+</style>
+
+<div class="sc-root">
+
+    <h1 class="logo">StoryChain</h1>
+    <p class="tagline">One word at a time</p>
+
+    <!-- Waiting for host to start -->
+    <div id="sc-screen-waiting" class="screen active">
+        <div class="card waiting-card">
+            <p>&#9203; Waiting for host&hellip;</p>
+            <small>Game will begin when the host starts it</small>
+        </div>
+    </div>
+
+    <!-- Main game -->
+    <div id="sc-screen-game" class="screen">
+        <div class="story-stage" id="sc-story-text">
+            <span class="placeholder">The story will appear here&hellip;</span>
+        </div>
+        <div class="word-count" id="sc-word-count">0 words</div>
+
+        <div class="turn-card" id="sc-turn-card">
+            <div class="turn-info">
+                <div class="turn-player" id="sc-turn-player">Waiting for players&hellip;</div>
+                <div class="turn-hint" id="sc-turn-hint">Type anything in chat to join!</div>
+            </div>
+            <div id="sc-turn-timer" class="timer">&ndash;</div>
+        </div>
+
+        <div class="feed" id="sc-feed"></div>
+    </div>
+
+</div>

@@ -155,6 +155,16 @@ app.post("/host/:gameId/config", localOnly, (req, res) => {
     }
 });
 
+app.post("/host/:gameId/action", localOnly, (req, res) => {
+    try {
+        ensureActive(req.params.gameId);
+        launcher.forwardHostCall(req.params.gameId, "hostAction", req.body);
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(400).json({ ok: false, error: err.message });
+    }
+});
+
 // ── Simulation endpoints (localhost only) ─────────────────────────────────────
 
 app.post("/chat", localOnly, (req, res) => {
