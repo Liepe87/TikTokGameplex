@@ -35,11 +35,7 @@ function renderLineup(lineup) {
     for (const game of lineup) {
         const card = document.createElement("div");
         card.className = "lineup-card";
-        const thumbStyle = game.thumbnail
-            ? `background-image:url('${game.thumbnail}')`
-            : "";
         card.innerHTML = `
-            <div class="lineup-thumb" style="${thumbStyle}"></div>
             <div class="lineup-body">
                 <div class="lineup-name">${escapeHtml(game.name)}</div>
                 <div class="lineup-desc">${escapeHtml(game.description || "")}</div>

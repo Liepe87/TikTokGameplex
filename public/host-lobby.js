@@ -34,13 +34,7 @@ function render() {
     for (const game of lineup) {
         const card = document.createElement("div");
         card.className = "game-card" + (game.id === activeGameId ? " active" : "");
-        const thumbStyle = game.thumbnail
-            ? `background-image:url('${game.thumbnail}')`
-            : "";
         card.innerHTML = `
-            <div class="game-thumb" style="${thumbStyle}">
-                <span class="active-pill">● Active</span>
-            </div>
             <div class="game-body">
                 <div class="game-name">${escapeHtml(game.name)}</div>
                 <div class="game-desc">${escapeHtml(game.description || "")}</div>
